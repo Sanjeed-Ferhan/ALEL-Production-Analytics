@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>May Production Dashboard & Analytics</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- PapaParse -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <!-- DataTables -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <!-- Google Fonts for modern look -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #181c24;
+      color: #f1f1f1;
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #232a34;
+      padding: 24px 0 16px 0;
+      text-align: center;
+      box-shadow: 0 2px 8px #0003;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #6ec1e4;
+    }
+    header p {
+      margin: 8px 0 0 0;
+      color: #b0b8c1;
+      font-size: 1.1rem;
+    }
+    .dashboard-container {
+      max-width: 1200px;
+      margin: 32px auto;
+      padding: 0 16px;
+    }
+    .kpi-cards {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .kpi-card {
+      background: #232a34;
+      border-radius: 12px;
+      flex: 1 1 200px;
+      padding: 24px 18px;
+      box-shadow: 0 2px 8px #0002;
+      text-align: center;
+      margin-bottom: 12px;
+      min-width: 180px;
+    }
+    .kpi-title {
+      font-size: 1.1rem;
+      color: #b0b8c1;
+      margin-bottom: 8px;
+    }
+    .kpi-value {
+      font-size: 2.1rem;
+      font-weight: 700;
+      color: #6ec1e4;
+    }
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 40px;
+    }
+    @media (max-width: 900px) {
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+      .kpi-cards {
+        flex-direction: column;
+        gap: 16px;
+      }
+    }
+    .chart-card {
+      background: #232a34;
+      border-radius: 12px;
+      padding: 18px 12px 12px 12px;
+      box-shadow: 0 2px 8px #0002;
+    }
+    .chart-title {
+      color: #b0b8c1;
+      font-size: 1.05rem;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .data-table-section {
+      background: #232a34;
+      border-radius: 12px;
+      padding: 18px 12px 24px 12px;
+      box-shadow: 0 2px 8px #0002;
+      margin-bottom: 32px;
+    }
+    table.dataTable {
+      color: #f1f1f1;
+      background: #232a34;
+    }
+    table.dataTable thead {
+      background: #181c24;
+      color: #6ec1e4;
+    }
+    table.dataTable tbody tr {
+      background: #232a34;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+      color: #6ec1e4 !important;
+      background: #181c24 !important;
+      border: none !important;
+    }
+    .dataTables_wrapper .dataTables_filter input {
+      background: #181c24;
+      color: #f1f1f1;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 4px 8px;
+    }
+    .footer {
+      text-align: center;
+      color: #b0b8c1;
+      font-size: 0.95rem;
+      margin: 32px 0 16px 0;
+    }
+    a {
+      color: #6ec1e4;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>May Production Dashboard & Analytics</h1>
+    <p>Live data from Google Sheets &mdash; "May" Tab</p>
+  </header>
+  <div class="dashboard-container">
+    <!-- KPI Cards -->
+    <div class="kpi-cards" id="kpi-cards">
+      <div class="kpi-card">
+        <div class="kpi-title">Total Produced</div>
+        <div class="kpi-value" id="kpi-produced">-</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Total Sold</div>
+        <div class="kpi-value" id="kpi-sold">-</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Total Revenue</div>
+        <div class="kpi-value" id="kpi-revenue">-</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Total Profit</div>
+        <div class="kpi-value" id="kpi-profit">-</div>
+      </div>
+    </div>
+    <!-- Charts -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Production & Sales Over Time</div>
+        <canvas id="chart-production"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Revenue & Profit Over Time</div>
+        <canvas id="chart-financial"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Production by Category</div>
+        <canvas id="chart-category"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Top Products by Profit</div>
+        <canvas id="chart-top-products"></canvas>
+      </div>
+    </div>
+    <!-- Data Table -->
+    <div class="data-table-section">
+      <h2 style="color:#6ec1e4; text-align:center; margin-bottom:18px;">Detailed Production Data</h2>
+      <table id="production-table" class="display" style="width:100%">
+        <thead>
+          <tr id="table-header-row"></tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="footer">
+    &copy; 2026 Production Dashboard &mdash; Powered by <a href="https://www.chartjs.org/" target="_blank">Chart.js</a>, <a href="https://www.papaparse.com/" target="_blank">PapaParse</a>, and <a href="https://datatables.net/" target="_blank">DataTables</a>.
+  </div>
+  <script>
+    // --- CONFIGURATION ---
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1ZYjLNc5bHJV-cDtwwtRzr2lf-LErBy3eAhlr5XLwgB4/export?format=csv&gid=78379499";
+    const CORS_PROXY = "https://corsproxy.io/?";
+    const DATA_URL = CORS_PROXY + encodeURIComponent(SHEET_CSV_URL);
+
+    // --- UTILITY FUNCTIONS ---
+    function parseNumber(val) {
+      if (typeof val === "number") return val;
+      if (!val) return 0;
+      // Remove commas, currency, etc.
+      return parseFloat(val.toString().replace(/[^0-9.\-]/g, "")) || 0;
+    }
+    function formatNumber(num) {
+      return num.toLocaleString();
+    }
+    function formatCurrency(num) {
+      return "₹" + num.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    // --- MAIN DASHBOARD LOGIC ---
+    let rawData = [];
+    let headers = [];
+
+    function updateKPIs(data) {
+      let totalProduced = 0, totalSold = 0, totalRevenue = 0, totalProfit = 0;
+      data.forEach(row => {
+        totalProduced += parseNumber(row["Quantity Produced"]);
+        totalSold += parseNumber(row["Quantity Sold"]);
+        totalRevenue += parseNumber(row["Revenue"]);
+        totalProfit += parseNumber(row["Profit"]);
+      });
+      document.getElementById("kpi-produced").textContent = formatNumber(totalProduced);
+      document.getElementById("kpi-sold").textContent = formatNumber(totalSold);
+      document.getElementById("kpi-revenue").textContent = formatCurrency(totalRevenue);
+      document.getElementById("kpi-profit").textContent = formatCurrency(totalProfit);
+    }
+
+    function groupBy(arr, key) {
+      return arr.reduce((acc, row) => {
+        const k = row[key] || "Unknown";
+        if (!acc[k]) acc[k] = [];
+        acc[k].push(row);
+        return acc;
+      }, {});
+    }
+
+    function renderCharts(data) {
+      // --- Chart 1: Production & Sales Over Time ---
+      const byDate = groupBy(data, "Date");
+      const dates = Object.keys(byDate).sort();
+      const producedByDate = dates.map(d => byDate[d].reduce((sum, r) => sum + parseNumber(r["Quantity Produced"]), 0));
+      const soldByDate = dates.map(d => byDate[d].reduce((sum, r) => sum + parseNumber(r["Quantity Sold"]), 0));
+
+      new Chart(document.getElementById("chart-production"), {
+        type: "line",
+        data: {
+          labels: dates,
+          datasets: [
+            {
+              label: "Produced",
+              data: producedByDate,
+              borderColor: "#6ec1e4",
+              backgroundColor: "rgba(110,193,228,0.15)",
+              tension: 0.3,
+              fill: true,
+              pointRadius: 3
+            },
+            {
+              label: "Sold",
+              data: soldByDate,
+              borderColor: "#f7b731",
+              backgroundColor: "rgba(247,183,49,0.10)",
+              tension: 0.3,
+              fill: true,
+              pointRadius: 3
+            }
+          ]
+        },
+        options: {
+          plugins: { legend: { labels: { color: "#f1f1f1" } } },
+          scales: {
+            x: { ticks: { color: "#b0b8c1" }, grid: { color: "#232a34" } },
+            y: { ticks: { color: "#b0b8c1" }, grid: { color: "#232a34" } }
+          }
+        }
+      });
+
+      // --- Chart 2: Revenue & Profit Over Time ---
+      const revenueByDate = dates.map(d => byDate[d].reduce((sum, r) => sum + parseNumber(r["Revenue"]), 0));
+      const profitByDate = dates.map(d => byDate[d].reduce((sum, r) => sum + parseNumber(r["Profit"]), 0));
+
+      new Chart(document.getElementById("chart-financial"), {
+        type: "bar",
+        data: {
+          labels: dates,
+          datasets: [
+            {
+              label: "Revenue",
+              data: revenueByDate,
+              backgroundColor: "#6ec1e4"
+            },
+            {
+              label: "Profit",
+              data: profitByDate,
+              backgroundColor: "#26de81"
+            }
+          ]
+        },
+        options: {
+          plugins: { legend: { labels: { color: "#f1f1f1" } } },
+          scales: {
+            x: { ticks: { color: "#b0b8c1" }, grid: { color: "#232a34" } },
+            y: { ticks: { color: "#b0b8c1" }, grid: { color: "#232a34" } }
+          }
+        }
+      });
+
+      // --- Chart 3: Production by Category ---
+      const byCategory = groupBy(data, "Category");
+      const categories = Object.keys(byCategory);
+      const producedByCategory = categories.map(cat => byCategory[cat].reduce((sum, r) => sum + parseNumber(r["Quantity Produced"]), 0));
+
+      new Chart(document.getElementById("chart-category"), {
+        type: "doughnut",
+        data: {
+          labels: categories,
+          datasets: [{
+            data: producedByCategory,
+            backgroundColor: ["#6ec1e4", "#f7b731", "#26de81", "#eb3b5a", "#8854d0", "#fd9644", "#a55eea", "#45aaf2"]
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { labels: { color: "#f1f1f1" } }
+          }
+        }
+      });
+
+      // --- Chart 4: Top Products by Profit ---
+      const byProduct = groupBy(data, "Product");
+      const products = Object.keys(byProduct);
+      const profitByProduct = products.map(p => byProduct[p].reduce((sum, r) => sum + parseNumber(r["Profit"]), 0));
+      // Sort top 7 products by profit
+      const topProducts = products.map((p, i) => ({p, profit: profitByProduct[i]}))
+        .sort((a, b) => b.profit - a.profit)
+        .slice(0, 7);
+
+      new Chart(document.getElementById("chart-top-products"), {
+        type: "bar",
+        data: {
+          labels: topProducts.map(x => x.p),
+          datasets: [{
+            label: "Profit",
+            data: topProducts.map(x => x.profit),
+            backgroundColor: "#f7b731"
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: "#b0b8c1" }, grid: { color: "#232a34" } },
+            y: { ticks: { color: "#b0b8c1" }, grid: { color: "#232a34" } }
+          }
+        }
+      });
+    }
+
+    function renderTable(data) {
+      // Build table header
+      const headerRow = document.getElementById("table-header-row");
+      headerRow.innerHTML = "";
+      headers.forEach(h => {
+        const th = document.createElement("th");
+        th.textContent = h;
+        headerRow.appendChild(th);
+      });
+      // Build table body
+      const body = document.getElementById("table-body");
+      body.innerHTML = "";
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        headers.forEach(h => {
+          const td = document.createElement("td");
+          td.textContent = row[h];
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+      // Initialize DataTables
+      $('#production-table').DataTable({
+        destroy: true,
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50, 100],
+        order: [],
+        language: {
+          search: "🔍 Search:",
+          lengthMenu: "Show _MENU_ entries",
+          info: "Showing _START_ to _END_ of _TOTAL_ entries"
+        }
+      });
+    }
+
+    function showError(msg) {
+      document.body.innerHTML = `<div style="color:#eb3b5a; background:#232a34; padding:48px; text-align:center; font-size:1.3rem;">
+        <b>Error:</b> ${msg}<br><br>
+        Please check your Google Sheet sharing settings and try again.
+      </div>`;
+    }
+
+    // --- DATA FETCH & INITIALIZATION ---
+    function initDashboard() {
+      Papa.parse(DATA_URL, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          if (!results.data || results.data.length === 0) {
+            showError("No data found in the 'May' tab.");
+            return;
+          }
+          rawData = results.data;
+          headers = results.meta.fields;
+          updateKPIs(rawData);
+          renderCharts(rawData);
+          renderTable(rawData);
+        },
+        error: function(err) {
+          showError("Failed to fetch or parse data: " + err.message);
+        }
+      });
+    }
+
+    // --- RUN ---
+    window.onload = initDashboard;
+  </script>
+</body>
+</html>
