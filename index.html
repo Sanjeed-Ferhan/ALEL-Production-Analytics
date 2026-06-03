@@ -381,7 +381,7 @@ td.col-name{color:var(--text-1);font-weight:500;max-width:280px;overflow:hidden;
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>#</th><th>Line Name</th><th>Target</th><th>Actual</th><th>Achievement</th></tr></thead>
+        <thead><tr><th>#</th><th>Line Name</th><th>Target</th><th>Actual</th><th>Achievement</th><th>Records</th></tr></thead>
         <tbody id="lineTableBody"></tbody>
       </table>
     </div>
@@ -399,7 +399,17 @@ td.col-name{color:var(--text-1);font-weight:500;max-width:280px;overflow:hidden;
     </div>
   </div>
 
-  
+  <div class="table-card fade-in delay-2" id="breakdownCard" style="display:none">
+    <div class="table-head">
+      <div><div class="card-title">Breakdown Time Analysis</div><div class="card-sub" style="margin-top:2px">Downtime by reason</div></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Reason</th><th>Minutes</th><th>Hours</th></tr></thead>
+        <tbody id="breakdownTableBody"></tbody>
+      </table>
+    </div>
+  </div>
 
 </main>
 
