@@ -517,13 +517,6 @@ function renderKPIs(s, data, p){
       label:'Active Lines',val:data.byLine.length,sub:'Assembly lines',
       accent:p.accent,
       badge:null
-    },
-    {
-      label:'Downtime',
-      val: s.totalBreakdownMin>0 ? (s.totalBreakdownMin/60).toFixed(1)+'h' : 'None',
-      sub: s.totalBreakdownMin>0 ? s.totalBreakdownMin+' min lost' : 'No breakdown logged',
-      accent: s.totalBreakdownMin>0 ? p.red : p.green,
-      badge:null
     }
   ];
   const badgeStyle = {
