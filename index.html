@@ -356,6 +356,22 @@ td.col-name{color:var(--text-1);font-weight:500;max-width:280px;overflow:hidden;
 
   <div class="section-divider">Line &amp; Product Analysis</div>
 
+  <div class="grid-3">
+    <div class="card fade-in">
+      <div class="card-head">
+        <div><div class="card-title">Line Achievement</div><div class="card-sub">Achievement % by assembly line</div></div>
+        <span class="card-tag">BY LINE</span>
+      </div>
+      <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
+    </div>
+    <div class="card fade-in delay-1">
+      <div class="card-head">
+        <div><div class="card-title">Product Group Mix</div><div class="card-sub">Output distribution</div></div>
+        <span class="card-tag">GROUPS</span>
+      </div>
+      <div class="chart-wrap" style="height:260px"><canvas id="groupChart"></canvas></div>
+    </div>
+  </div>
 
   <div class="section-divider">Detailed Tables</div>
 
@@ -383,17 +399,7 @@ td.col-name{color:var(--text-1);font-weight:500;max-width:280px;overflow:hidden;
     </div>
   </div>
 
-  <div class="table-card fade-in delay-2" id="breakdownCard" style="display:none">
-    <div class="table-head">
-      <div><div class="card-title">Breakdown Time Analysis</div><div class="card-sub" style="margin-top:2px">Downtime by reason</div></div>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>#</th><th>Reason</th><th>Minutes</th><th>Hours</th></tr></thead>
-        <tbody id="breakdownTableBody"></tbody>
-      </table>
-    </div>
-  </div>
+  
 
 </main>
 
@@ -500,6 +506,13 @@ function renderKPIs(s, data, p){
     {
       label:'Active Lines',val:data.byLine.length,sub:'Assembly lines',
       accent:p.accent,
+      badge:null
+    },
+    {
+      label:'Downtime',
+      val: s.totalBreakdownMin>0 ? (s.totalBreakdownMin/60).toFixed(1)+'h' : 'None',
+      sub: s.totalBreakdownMin>0 ? s.totalBreakdownMin+' min lost' : 'No breakdown logged',
+      accent: s.totalBreakdownMin>0 ? p.red : p.green,
       badge:null
     }
   ];
